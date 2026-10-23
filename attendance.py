@@ -4,7 +4,7 @@ import requests
 
 BASE = "https://tharwa.sanbapro.com"
 
-# TODO: इन URL को अपनी साइट के असली API रूट से बदलें
+# ये तीनों URL अंदाज़े वाले हैं, असली API से बदलने होंगे
 LOGIN_URL = BASE + "/api/auth/login"
 CHECKIN_URL = BASE + "/api/attendance/checkin"
 CHECKOUT_URL = BASE + "/api/attendance/checkout"
@@ -17,11 +17,14 @@ url = CHECKIN_URL if action == "checkin" else CHECKOUT_URL
 
 s = requests.Session()
 
-# TODO: अगर लॉगिन के फ़ील्ड के नाम अलग हैं तो यहाँ बदलें
-r = s.post(LOGIN_URL, json={"username": 0577860524, "1067": PASSWORD
+r = s.post(
+    LOGIN_URL,
+    json={"username": USERNAME, "password": PASSWORD},
+    timeout=30,
+)
+print("login", r.status_code, r.text[:200])
 r.raise_for_status()
 
-# अगर लॉगिन के बाद टोकन मिलता है तो उसे हेडर में लगाएँ
 try:
     token = r.json().get("token")
 except ValueError:
