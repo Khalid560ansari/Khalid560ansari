@@ -1,0 +1,42 @@
+name: Auto Attendance
+
+on:
+  schedule:
+    # 8:30 AM सऊदी = 05:30 UTC
+    - cron: "30 5 * * *"
+    # 9:30 PM सऊदी = 18:30 UTC
+    - cron: "30 18 * * *"
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "checkin या checkout"
+        default: "checkin"
+
+jobs:
+  attend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install requests
+
+      - name: Decide action
+        id: decide
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "action=${{ github.event.inputs.action }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.schedule }}" = "30 5 * * *" ]; then
+            echo "action=checkin" >> $GITHUB_OUTPUT
+          else
+            echo "action=checkout" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run attendance
+        env:
+          TH_USERNAME: ${{ secrets.TH_USERNAME }}
+          TH_PASSWORD: ${{ secrets.TH_PASSWORD }}
+        run: python attendance.py ${{ steps.decide.outputs.action }}
